@@ -6,189 +6,189 @@
 
 ## View Screenings
 
-**Aktér:**
+**Actor:**
 
-- Uživatel
+- User
 
-**Cíl:** Zobrazit uživateli seznam dostupných promítání.
+**Goal:** Show the user a list of available screenings.
 
-### Hlavní scénář
+### Main scenario
 
-1. Uživatel si vyžádá seznam promítání.
-2. Systém načte promítání.
-3. Systém zobrazí uživateli seznam promítání.
+1. The user requests the list of screenings.
+2. The system loads the screenings.
+3. The system displays the list of screenings to the user.
 
 ---
 
 ## View Reservations
 
-**Aktér:**
+**Actor:**
 
-- Uživatel
+- User
 
-**Cíl:** Zobrazit uživateli seznam dostupných rezervací.
+**Goal:** Show the user a list of their reservations.
 
-**Předpoklady:**
+**Preconditions:**
 
-- Uživatel je přihlášen.
+- The user is logged in.
 
-### Hlavní scénář
+### Main scenario
 
-1. Uživatel si vyžádá seznam svých rezervací.
-2. Systém načte rezervace.
-3. Systém zobrazí uživateli seznam rezervací.
+1. The user requests the list of their reservations.
+2. The system loads the reservations.
+3. The system displays the list of reservations to the user.
 
 ---
 
 ## Create Reservation
 
-**Aktér:**
+**Actor:**
 
-- Uživatel
+- User
 
-**Cíl:** Zarezervovat si místo.
+**Goal:** Reserve a seat.
 
-**Předpoklady:**
+**Preconditions:**
 
-- Uživatel je přihlášen.
+- The user is logged in.
 
-### Hlavní scénář
+### Main scenario
 
-1. Uživatel vybere promítání.
-2. Uživatel vybere sedadlo.
-3. Systém ověří, že sedadlo je `FREE`.
-4. Systém nastaví sedadlo na `PENDING`.
-5. Systém zobrazí uživateli výsledek rezervace.
+1. The user selects a screening.
+2. The user selects a seat.
+3. The system verifies that the seat is `FREE`.
+4. The system sets the seat to `PENDING`.
+5. The system displays the reservation result to the user.
 
-### Alternativní scénaře
+### Alternative scenarios
 
-**4a. Sedadlo je `PENDING` déle než 5 minut**
+**4a. The seat has been `PENDING` for more than 5 minutes**
 
-1. Systém nastaví sedadlo znovu na `PENDING` pro nového uživatele.
-2. Systém vynuluje časovač.
-3. Pokračuje se krokem 5.
+1. The system sets the seat to `PENDING` again for the new user.
+2. The system resets the timer.
+3. Continue with step 5.
 
-**4b. Sedadlo je `PENDING` méně než 5 minut**
+**4b. The seat has been `PENDING` for less than 5 minutes**
 
-1. Systém rezervaci zamítne.
-2. Pokračuje se krokem 5.
+1. The system rejects the reservation.
+2. Continue with step 5.
 
-**4c. Sedadlo je `RESERVED`**
+**4c. The seat is `RESERVED`**
 
-1. Systém rezervaci zamítne.
-2. Pokračuje se krokem 5.
+1. The system rejects the reservation.
+2. Continue with step 5.
 
 ---
 
 ## Pay Reservation
 
-**Aktér:**
+**Actor:**
 
-- Uživatel
+- User
 
-**Cíl:** Zaplatit rezervaci, aby se sedadlo potvrdilo.
+**Goal:** Pay for a reservation so that the seat is confirmed.
 
-**Předpoklady:**
+**Preconditions:**
 
-- Uživatel je přihlášen.
+- The user is logged in.
 
-### Hlavní scénář
+### Main scenario
 
-1. Uživatel vybere rezervaci.
-2. Uživatel požádá o platbu.
-3. Systém ověří, že rezervace existuje.
-4. Systém ověří, že rezervace je ve stavu `PENDING`.
-5. Systém ověří, že rezervace nevypršela.
-6. Systém zpracuje platbu.
-7. Platba je úspěšná a systém potvrdí rezervaci.
-8. Systém nastaví sedadlo na `RESERVED`.
-9. Systém zobrazí uživateli výsledek platby.
+1. The user selects a reservation.
+2. The user requests payment.
+3. The system verifies that the reservation exists.
+4. The system verifies that the reservation is in the `PENDING` state.
+5. The system verifies that the reservation has not expired.
+6. The system processes the payment through an external payment gateway.
+7. The payment succeeds and the system confirms the reservation.
+8. The system sets the seat to `RESERVED`.
+9. The system displays the payment result to the user.
 
-### Alternativní scénaře
+### Alternative scenarios
 
-**3a. Rezervace neexistuje**
+**3a. The reservation does not exist**
 
-1. Systém platbu zamítne.
-2. Pokračuje se krokem 9.
+1. The system rejects the payment.
+2. Continue with step 9.
 
-**4a. Rezervace není ve stavu `PENDING`**
+**4a. The reservation is not in the `PENDING` state**
 
-1. Systém platbu zamítne.
-2. Pokračuje se krokem 9.
+1. The system rejects the payment.
+2. Continue with step 9.
 
-**5a. Rezervace vypršela**
+**5a. The reservation has expired**
 
-1. Systém zruší rezervaci.
-2. Systém nastaví sedadlo na `FREE`.
-3. Systém platbu zamítne.
-4. Pokračuje se krokem 9.
+1. The system cancels the reservation.
+2. The system sets the seat to `FREE`.
+3. The system rejects the payment.
+4. Continue with step 9.
 
-**7a. Platba selhala**
+**7a. The payment failed**
 
-1. Systém platbu zamítne.
-2. Pokračuje se krokem 9.
+1. The system rejects the payment.
+2. Continue with step 9.
 
 ---
 
 ## Cancel Reservation
 
-**Aktér:**
+**Actor:**
 
-- Uživatel
+- User
 
-**Cíl:** Zrušit stávající rezervaci.
+**Goal:** Cancel an existing reservation.
 
-**Předpoklady:**
+**Preconditions:**
 
-- Uživatel je přihlášen.
+- The user is logged in.
 
-### Hlavní scénář
+### Main scenario
 
-1. Uživatel vybere rezervaci.
-2. Uživatel požádá o zrušení rezervace.
-3. Systém ověří, že rezervace existuje.
-4. Systém ověří, že rezervaci lze zrušit.
-5. Systém zruší rezervaci.
-6. Systém nastaví sedadlo na `FREE`.
-7. Systém zobrazí uživateli výsledek zrušení.
+1. The user selects a reservation.
+2. The user requests cancellation of the reservation.
+3. The system verifies that the reservation exists.
+4. The system verifies that the reservation can be cancelled.
+5. The system cancels the reservation.
+6. The system sets the seat to `FREE`.
+7. The system displays the cancellation result to the user.
 
-### Alternativní scénaře
+### Alternative scenarios
 
-**3a. Rezervace neexistuje**
+**3a. The reservation does not exist**
 
-1. Systém zrušení zamítne.
-2. Pokračuje se krokem 7.
+1. The system rejects the cancellation.
+2. Continue with step 7.
 
-**4a. Rezervaci nelze zrušit**
+**4a. The reservation cannot be cancelled**
 
-1. Systém zrušení zamítne.
-2. Pokračuje se krokem 7.
+1. The system rejects the cancellation.
+2. Continue with step 7.
 
 ---
 
 ## Manage Reservations
 
-**Aktér:**
+**Actor:**
 
 - Admin
 
-**Cíl:** Umožnit adminovi prohlížet rezervace a rušit je.
+**Goal:** Allow the admin to view reservations and cancel them.
 
-### Hlavní scénář
+### Main scenario
 
-1. Admin si vyžádá seznam rezervací.
-2. Systém načte rezervace.
-3. Systém zobrazí adminovi seznam rezervací.
-4. Admin vybere rezervaci.
-5. Admin požádá o zrušení rezervace.
-6. Systém ověří, že rezervace existuje.
-7. Systém zruší rezervaci.
-8. Systém nastaví sedadlo na `FREE`.
-9. Systém zobrazí adminovi výsledek zrušení.
+1. The admin requests the list of reservations.
+2. The system loads the reservations.
+3. The system displays the list of reservations to the admin.
+4. The admin selects a reservation.
+5. The admin requests cancellation of the reservation.
+6. The system verifies that the reservation exists.
+7. The system cancels the reservation.
+8. The system sets the seat to `FREE`.
+9. The system displays the cancellation result to the admin.
 
-### Alternativní scénaře
+### Alternative scenarios
 
-**7a. Rezervace neexistuje**
+**6a. The reservation does not exist**
 
-1. Systém zrušení zamítne.
-2. Pokračuje se krokem 9.
+1. The system rejects the cancellation.
+2. Continue with step 9.
