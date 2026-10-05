@@ -1,0 +1,35 @@
+@startuml
+title Reservation State Diagram
+
+state "PENDING" as Pending
+state "RESERVED" as Reserved
+
+[*] --> Pending : Create reservation
+
+Pending --> Reserved : Payment successful\nconfirm()
+
+Pending --> [*] : Reservation cancelled
+Pending --> [*] : Hold expires after 5 minutes
+
+Reserved --> [*] : Reservation cancelled
+
+Reserved --> Reserved : confirm() called again\nNo state change
+
+note right of Pending
+ReservationStatus.PENDING
+
+Seats are temporarily held.
+Payment is PENDING.
+
+The reservation expires
+after 5 minutes if unpaid.
+end note
+
+note right of Reserved
+ReservationStatus.RESERVED
+
+Payment is COMPLETED.
+Seats are reserved.
+end note
+
+@enduml
