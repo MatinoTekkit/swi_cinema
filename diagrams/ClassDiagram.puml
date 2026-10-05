@@ -6,6 +6,7 @@ class User {
     - String lastName
     - String email
     - Integer age
+    - Role role
 }
 
 class Movie {
@@ -31,7 +32,6 @@ class Seat {
 
 class Reservation {
     - Long id
-    - String contactEmail
     - LocalDateTime createdAt
     - ReservationStatus reservationStatus
 }
@@ -42,6 +42,11 @@ class Payment {
     - String currency
     - PaymentStatus paymentStatus
     - LocalDateTime createdAt
+}
+
+enum Role {
+    USER
+    ADMIN
 }
 
 enum ReservationStatus {
@@ -68,6 +73,7 @@ Reservation "0..*" -- "0..*" Seat : seats
 
 Reservation "1" -- "0..1" Payment : payment
 
+User --> Role
 Reservation --> ReservationStatus
 Payment --> PaymentStatus
 @enduml
