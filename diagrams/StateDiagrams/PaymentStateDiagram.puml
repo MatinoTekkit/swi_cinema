@@ -1,0 +1,30 @@
+@startuml
+title Payment State Diagram
+
+state "PENDING" as Pending
+state "COMPLETED" as Completed
+
+[*] --> Pending : Reservation created
+
+Pending --> Completed : Payment successful\nReservation confirmed
+
+Pending --> [*] : Reservation expires
+Pending --> [*] : Reservation cancelled
+
+Completed --> [*] : Reservation cancelled
+
+note right of Pending
+PaymentStatus.PENDING
+
+Created automatically together
+with the reservation.
+end note
+
+note right of Completed
+PaymentStatus.COMPLETED
+
+The reservation is also
+changed to RESERVED.
+end note
+
+@enduml
