@@ -26,4 +26,5 @@ PaymentStatus.COMPLETED
 The reservation is also
 changed to RESERVED.
 end note
+
 @enduml

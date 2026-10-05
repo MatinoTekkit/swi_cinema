@@ -31,4 +31,5 @@ ReservationStatus.RESERVED
 Payment is COMPLETED.
 Seats are reserved.
 end note
+
 @enduml

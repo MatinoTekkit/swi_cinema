@@ -2,7 +2,7 @@
 title Seat State Diagram
 
 state "FREE" as Free
-state "PENDING\n(temporarily held)" as Pending
+state "PENDING" as Pending
 state "RESERVED" as Reserved
 
 [*] --> Free
@@ -29,4 +29,5 @@ SeatStatus.RESERVED
 The associated reservation
 has status RESERVED.
 end note
+
 @enduml
