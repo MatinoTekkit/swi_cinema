@@ -1,0 +1,32 @@
+@startuml
+title Seat State Diagram
+
+state "FREE" as Free
+state "PENDING\n(temporarily held)" as Pending
+state "RESERVED" as Reserved
+
+[*] --> Free
+
+Free --> Pending : Pending reservation created
+
+Pending --> Reserved : Reservation confirmed\nPayment successful
+
+Pending --> Free : Reservation expires
+Pending --> Free : Reservation cancelled
+
+Reserved --> Free : Reservation cancelled
+
+note right of Pending
+SeatStatus.PENDING
+
+The seat is temporarily held
+for up to 5 minutes.
+end note
+
+note right of Reserved
+SeatStatus.RESERVED
+
+The associated reservation
+has status RESERVED.
+end note
+@enduml
