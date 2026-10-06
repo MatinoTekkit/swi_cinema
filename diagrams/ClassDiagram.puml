@@ -1,0 +1,79 @@
+@startuml Class
+
+class User {
+    - Long id
+    - String firstName
+    - String lastName
+    - String email
+    - Integer age
+    - Role role
+}
+
+class Movie {
+    - Long id
+    - String name
+    - String director
+    - Long duration
+}
+
+class Screening {
+    - Long id
+    - LocalDateTime time
+    - BigDecimal price
+}
+
+class Room {
+    - Long id
+}
+
+class Seat {
+    - Long id
+}
+
+class Reservation {
+    - Long id
+    - LocalDateTime createdAt
+    - ReservationStatus reservationStatus
+}
+
+class Payment {
+    - Long id
+    - BigDecimal amount
+    - String currency
+    - PaymentStatus paymentStatus
+    - LocalDateTime createdAt
+}
+
+enum Role {
+    USER
+    ADMIN
+}
+
+enum ReservationStatus {
+    PENDING
+    RESERVED
+}
+
+enum PaymentStatus {
+    PENDING
+    COMPLETED
+}
+
+User "1" -- "0..*" Reservation : reservations
+
+Movie "1" -- "0..*" Screening : screenings
+
+Room "1" -- "0..*" Screening : screenings
+
+Room "1" -- "0..*" Seat : seats
+
+Screening "1" -- "0..*" Reservation : reservations
+
+Reservation "0..*" -- "0..*" Seat : seats
+
+Reservation "1" -- "0..1" Payment : payment
+
+User --> Role
+Reservation --> ReservationStatus
+Payment --> PaymentStatus
+@enduml

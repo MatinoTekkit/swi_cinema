@@ -6,14 +6,12 @@ state "RESERVED" as Reserved
 
 [*] --> Pending : Create reservation
 
-Pending --> Reserved : Payment successful\nconfirm()
+Pending --> Reserved : Payment successful
 
 Pending --> [*] : Reservation cancelled
 Pending --> [*] : Hold expires after 5 minutes
 
 Reserved --> [*] : Reservation cancelled
-
-Reserved --> Reserved : confirm() called again\nNo state change
 
 note right of Pending
 ReservationStatus.PENDING

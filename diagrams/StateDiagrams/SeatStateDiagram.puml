@@ -2,22 +2,22 @@
 title Seat State Diagram
 
 state "FREE" as Free
-state "CANDIDATE" as Candidate
+state "PENDING" as Pending
 state "RESERVED" as Reserved
 
 [*] --> Free
 
-Free --> Candidate : Pending reservation created
+Free --> Pending : Pending reservation created
 
-Candidate --> Reserved : Reservation confirmed\nPayment successful
+Pending --> Reserved : Reservation confirmed\nPayment successful
 
-Candidate --> Free : Reservation expires
-Candidate --> Free : Reservation cancelled
+Pending --> Free : Reservation expires
+Pending --> Free : Reservation cancelled
 
 Reserved --> Free : Reservation cancelled
 
-note right of Candidate
-SeatStatus.CANDIDATE
+note right of Pending
+SeatStatus.PENDING
 
 The seat is temporarily held
 for up to 5 minutes.
