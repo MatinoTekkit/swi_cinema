@@ -1,0 +1,85 @@
+
+@startuml View Screening Seats Sequence
+
+actor User
+participant UI
+participant ScreeningController
+participant ScreeningService
+participant ScreeningRepository
+participant SeatRepository
+participant ReservationRepository
+database DB
+
+note right of ScreeningService
+    **SeatDto**
+    --
+    long Id
+    int Row
+    int Number
+    SeatStatus Status
+
+    **SeatStatus**
+    --
+    AVAILABLE - Green (free)
+    PENDING - Yellow (temporarily held)
+    RESERVED - Red (booked)
+
+    Expired PENDING reservations
+    are treated as AVAILABLE.
+end note
+
+User -> UI: Select screening
+
+UI -> ScreeningController: GET /screenings/{screeningId}/seats
+activate ScreeningController
+
+ScreeningController -> ScreeningService: getSeats(screeningId)
+activate ScreeningService
+
+ScreeningService -> ScreeningRepository: findById(screeningId)
+activate ScreeningRepository
+
+ScreeningRepository -> DB: SELECT screening
+DB --> ScreeningRepository: Screening
+
+ScreeningRepository --> ScreeningService: Screening (hallId)
+deactivate ScreeningRepository
+
+ScreeningService -> SeatRepository: findByHallId(hallId)
+activate SeatRepository
+
+SeatRepository -> DB: SELECT seats
+DB --> SeatRepository: List<Seat>
+
+SeatRepository --> ScreeningService: List<Seat>
+deactivate SeatRepository
+
+ScreeningService -> ReservationRepository: findActiveByScreeningId(\nscreeningId, activeSince)
+activate ReservationRepository
+
+ReservationRepository -> DB: SELECT active reservations
+DB --> ReservationRepository: List<Reservation>
+
+ReservationRepository --> ScreeningService: List<Reservation>
+deactivate ReservationRepository
+
+ScreeningService -> ScreeningService: Map seats to SeatDto\nAssign seat status
+
+ScreeningService --> ScreeningController: List<SeatDto>
+deactivate ScreeningService
+
+ScreeningController --> UI: 200 OK\nList<SeatDto>
+deactivate ScreeningController
+
+UI -> UI: Render seating layout\nAVAILABLE = green\nPENDING = yellow\nRESERVED = red
+
+note right of UI
+    Only AVAILABLE seats are clickable.
+
+    PENDING and RESERVED seats
+    are displayed but disabled.
+end note
+
+UI --> User: Display seating layout\nwith selectable AVAILABLE seats
+
+@enduml
