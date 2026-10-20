@@ -1,0 +1,16 @@
+
+@startuml Payment State Diagram
+
+title Payment - State Diagram
+
+hide empty description
+
+[*] --> PENDING : Initiate payment
+
+PENDING --> COMPLETED : Payment successful
+PENDING --> FAILED : Payment failed
+
+COMPLETED --> [*]
+FAILED --> [*]
+
+@enduml

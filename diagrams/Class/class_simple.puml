@@ -1,0 +1,113 @@
+
+@startuml Cinema Reservation Class Diagram
+
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+class User {
+    - id: Long
+}
+
+class Movie {
+    - id: Long
+    - title: String
+    - duration: int
+}
+
+class CinemaHall {
+    - id: Long
+    - name: String
+}
+
+class Seat {
+    - id: Long
+    - row: int
+    - number: int
+}
+
+class Screening {
+    - id: Long
+    - time: LocalDateTime
+    - status: ScreeningStatus
+}
+
+class Reservation {
+    - id: Long
+    - status: ReservationStatus
+    - createdAt: LocalDateTime
+    - expiresAt: LocalDateTime
+}
+
+class Payment {
+    - id: Long
+    - status: PaymentStatus
+}
+
+class ScreeningSeatDto <<DTO>> {
+    + seatId: Long
+    + row: int
+    + number: int
+    + status: ScreeningSeatStatus
+}
+
+enum ReservationStatus {
+    PENDING
+    RESERVED
+}
+
+enum ScreeningStatus {
+    SCHEDULED
+    IN_PROGRESS
+    FINISHED
+    CANCELLED
+}
+
+enum PaymentStatus {
+    PENDING
+    COMPLETED
+    FAILED
+}
+
+enum ScreeningSeatStatus {
+    FREE
+    PENDING
+    RESERVED
+}
+
+CinemaHall "1" *-- "1..*" Seat
+CinemaHall "1" -- "0..*" Screening
+Movie "1" -- "0..*" Screening
+
+User "1" -- "0..*" Reservation
+Screening "1" -- "0..*" Reservation
+Reservation "0..*" -- "1..*" Seat
+Reservation "1" -- "0..1" Payment
+
+Reservation --> ReservationStatus
+Screening --> ScreeningStatus
+Payment --> PaymentStatus
+ScreeningSeatDto --> ScreeningSeatStatus
+
+ScreeningSeatDto ..> Screening
+ScreeningSeatDto ..> Seat
+
+note right of ScreeningSeatDto
+    Represents seat availability
+    for a specific screening.
+
+    Status is derived from
+    reservations for that screening.
+
+    Only FREE seats are selectable.
+end note
+
+note bottom of Reservation
+    Reserved seats must belong
+    to the hall of the screening.
+
+    A seat cannot have multiple
+    active reservations for
+    the same screening.
+end note
+
+@enduml

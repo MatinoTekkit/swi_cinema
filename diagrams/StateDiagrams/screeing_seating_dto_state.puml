@@ -1,0 +1,36 @@
+@startuml ScreeningSeatDto State Diagram
+
+title ScreeningSeatDto - State Diagram
+
+hide empty description
+
+state "FREE" as Free
+state "PENDING" as Pending
+state "RESERVED" as Reserved
+
+[*] --> Free : Seat available
+
+Free --> Pending : Create reservation
+
+Pending --> Reserved : Payment successful
+Pending --> Free : Reservation expired
+Pending --> Free : Reservation cancelled
+
+Reserved --> Free : Reservation cancelled
+
+note right of Free
+    Seat is available
+    for reservation.
+end note
+
+note right of Pending
+    Seat is temporarily blocked
+    for 5 minutes.
+end note
+
+note right of Reserved
+    Seat is reserved
+    for this screening.
+end note
+
+@enduml

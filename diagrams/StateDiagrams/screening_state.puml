@@ -1,0 +1,17 @@
+@startuml Screening State Diagram
+
+title Screening - State Diagram
+
+hide empty description
+
+[*] --> SCHEDULED : Create screening
+
+SCHEDULED --> IN_PROGRESS : Screening starts
+IN_PROGRESS --> FINISHED : Screening ends
+
+SCHEDULED --> CANCELLED : Cancel screening
+
+FINISHED --> [*]
+CANCELLED --> [*]
+
+@enduml

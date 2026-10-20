@@ -1,0 +1,315 @@
+
+@startuml Cinema Reservation - Detailed Class Diagram
+
+title Cinema Reservation - Detailed Class Diagram
+
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam packageStyle rectangle
+skinparam shadowing false
+
+top to bottom direction
+
+package "Presentation Layer" {
+
+    class UI <<boundary>> {
+        + viewScreenings(): void
+        + viewSeats(screeningId: Long): void
+        + createReservation(request: CreateReservationRequest): void
+        + confirmReservation(id: Long): void
+        + cancelReservation(id: Long): void
+        + viewReservations(): void
+    }
+
+}
+
+package "Controller Layer" {
+
+    class ReservationController <<RestController>> {
+        + create(request: CreateReservationRequest): ReservationDto
+        + confirm(id: Long): ReservationDto
+        + cancel(id: Long): void
+        + listReservations(user: User): List<ReservationDto>
+    }
+
+    class ScreeningController <<RestController>> {
+        + listScreenings(): List<ScreeningDto>
+        + getSeats(screeningId: Long): List<ScreeningSeatDto>
+    }
+
+}
+
+package "Service Layer" {
+
+    class ReservationService <<Service>> {
+        + create(request: CreateReservationRequest): ReservationDto
+        + confirm(id: Long): ReservationDto
+        + cancel(id: Long): void
+        + listReservations(user: User): List<ReservationDto>
+        - toDto(reservation: Reservation): ReservationDto
+    }
+
+    class ScreeningService <<Service>> {
+        + listScreenings(): List<ScreeningDto>
+        + getSeats(screeningId: Long): List<ScreeningSeatDto>
+        - toDto(screening: Screening): ScreeningDto
+        - resolveSeatStatus(seat: Seat, reservations: List<Reservation>): ScreeningSeatStatus
+    }
+
+}
+
+package "Repository Layer" {
+
+    interface ReservationRepository <<Repository>> {
+        + findById(id: Long): Optional<Reservation>
+        + findByUser(user: User): List<Reservation>
+        + findActiveByScreeningId(screeningId: Long, activeSince: LocalDateTime): List<Reservation>
+        + deleteExpiredPending(screeningId: Long, seatIds: List<Long>, activeSince: LocalDateTime): int
+        + save(reservation: Reservation): Reservation
+        + delete(reservation: Reservation): void
+    }
+
+    interface ScreeningRepository <<Repository>> {
+        + findById(id: Long): Optional<Screening>
+        + findAllByOrderByTimeAsc(): List<Screening>
+    }
+
+    interface SeatRepository <<Repository>> {
+        + findByHallId(hallId: Long): List<Seat>
+        + findUnavailableSeatIds(screeningId: Long, seatIds: List<Long>, activeSince: LocalDateTime): List<Long>
+    }
+
+    interface PaymentRepository <<Repository>> {
+        + save(payment: Payment): Payment
+    }
+
+}
+
+package "Domain Model" {
+
+    class User {
+        - id: Long
+    }
+
+    class Movie {
+        - id: Long
+        - title: String
+        - duration: int
+    }
+
+    class CinemaHall {
+        - id: Long
+        - name: String
+    }
+
+    class Seat {
+        - id: Long
+        - row: int
+        - number: int
+    }
+
+    class Screening {
+        - id: Long
+        - time: LocalDateTime
+        - status: ScreeningStatus
+    }
+
+    class Reservation {
+        - id: Long
+        - status: ReservationStatus
+        - createdAt: LocalDateTime
+        - expiresAt: LocalDateTime
+    }
+
+    class Payment {
+        - id: Long
+        - status: PaymentStatus
+    }
+
+    enum ReservationStatus {
+        PENDING
+        RESERVED
+    }
+
+    enum ScreeningStatus {
+        SCHEDULED
+        IN_PROGRESS
+        FINISHED
+        CANCELLED
+    }
+
+    enum PaymentStatus {
+        PENDING
+        COMPLETED
+        FAILED
+    }
+
+}
+
+package "DTO Layer" {
+
+    class CreateReservationRequest <<Request>> {
+        + screeningId: Long
+        + seatIds: List<Long>
+    }
+
+    class ReservationDto <<DTO>> {
+        + id: Long
+        + screeningId: Long
+        + seatIds: List<Long>
+        + status: ReservationStatus
+        + createdAt: LocalDateTime
+        + expiresAt: LocalDateTime
+    }
+
+    class ScreeningDto <<DTO>> {
+        + id: Long
+        + movieTitle: String
+        + hallName: String
+        + time: LocalDateTime
+        + status: ScreeningStatus
+    }
+
+    class ScreeningSeatDto <<DTO>> {
+        + seatId: Long
+        + row: int
+        + number: int
+        + status: ScreeningSeatStatus
+    }
+
+    enum ScreeningSeatStatus {
+        FREE
+        PENDING
+        RESERVED
+    }
+
+}
+
+package "External Integration" {
+
+    interface PaymentGateway <<external>> {
+        + processPayment(payment: Payment): PaymentStatus
+    }
+
+}
+
+package "Exceptions" {
+
+    class ResourceNotFoundException <<Exception>>
+
+    class SeatNotAvailableException <<Exception>>
+
+    class PaymentFailedException <<Exception>>
+
+}
+
+' ==========================================
+' Domain Relationships
+' ==========================================
+
+CinemaHall "1" *-- "1..*" Seat
+CinemaHall "1" -- "0..*" Screening
+Movie "1" -- "0..*" Screening
+
+User "1" -- "0..*" Reservation
+Screening "1" -- "0..*" Reservation
+Reservation "0..*" -- "1..*" Seat
+Reservation "1" -- "0..1" Payment
+
+' ==========================================
+' Presentation Dependencies
+' ==========================================
+
+UI ..> ReservationController
+UI ..> ScreeningController
+
+' ==========================================
+' Controller Dependencies
+' ==========================================
+
+ReservationController --> ReservationService
+ScreeningController --> ScreeningService
+
+ReservationController ..> CreateReservationRequest
+ReservationController ..> ReservationDto
+
+ScreeningController ..> ScreeningDto
+ScreeningController ..> ScreeningSeatDto
+
+' ==========================================
+' Service Dependencies
+' ==========================================
+
+ReservationService --> ReservationRepository
+ReservationService --> SeatRepository
+ReservationService --> PaymentRepository
+ReservationService --> PaymentGateway
+
+ScreeningService --> ScreeningRepository
+ScreeningService --> SeatRepository
+ScreeningService --> ReservationRepository
+
+' ==========================================
+' Repository Dependencies
+' ==========================================
+
+ReservationRepository ..> Reservation
+ScreeningRepository ..> Screening
+SeatRepository ..> Seat
+PaymentRepository ..> Payment
+
+' ==========================================
+' DTO Dependencies
+' ==========================================
+
+ScreeningSeatDto ..> Seat
+ScreeningSeatDto ..> Screening
+ScreeningSeatDto ..> ScreeningSeatStatus
+
+' ==========================================
+' Exception Dependencies
+' ==========================================
+
+ReservationService ..> ResourceNotFoundException
+ReservationService ..> SeatNotAvailableException
+ReservationService ..> PaymentFailedException
+
+' ==========================================
+' Notes
+' ==========================================
+
+note right of Reservation
+    A reservation belongs to one
+    screening and contains one
+    or more seats.
+
+    PENDING reservations expire
+    after 5 minutes.
+
+    Reserved seats must belong
+    to the screening's hall.
+end note
+
+note right of ScreeningSeatDto
+    Represents seat availability
+    for a specific screening.
+
+    Status is derived from
+    active reservations.
+
+    Expired PENDING reservations
+    are treated as FREE.
+
+    Only FREE seats are selectable.
+end note
+
+note bottom of ReservationService
+    Handles reservation creation,
+    payment confirmation,
+    cancellation and listing.
+
+    Throws IllegalStateException
+    for invalid reservation states.
+end note
+
+@enduml
