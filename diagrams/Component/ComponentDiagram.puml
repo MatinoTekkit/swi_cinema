@@ -1,0 +1,100 @@
+@startuml ComponentDiagram
+
+title Cinema Reservation - Component Diagram
+
+skinparam componentStyle uml2
+skinparam shadowing false
+skinparam nodesep 50
+skinparam ranksep 60
+
+actor User
+actor Admin
+
+
+component "cli.jar" <<executable>> as Cli {
+    component "Terminal UI\n(Lanterna)" as Tui
+    component "Command Menu" as CommandMenu
+    component "Cinema API Client" as ApiClient
+}
+
+
+component "shared.jar" <<library>> as Shared
+
+
+interface "Screenings API\n/screenings" as IScreenings
+interface "Reservations API\n/reservations" as IReservations
+interface "Admin API\n/admin/reservations" as IAdmin
+
+component "cinema.jar" <<Spring Boot application>> as Server {
+    component "Screening Management" as ScreeningMgmt
+    component "Reservation Management" as ReservationMgmt
+    component "Payment Integration" as PaymentIntegration
+    component "Persistence\n(Spring Data JPA)" as Persistence
+
+    interface "PaymentGateway" as IPaymentGateway
+    interface "Repositories" as IRepositories
+}
+
+
+interface "JDBC" as IJdbc
+database "cinema.db" <<SQLite>> as Db
+
+interface "Payment API" as IPaymentApi
+component "Payment Gateway" <<external system>> as ExternalGateway
+
+
+User --> Tui : uses
+Admin --> Tui : uses
+
+Tui --> CommandMenu
+CommandMenu --> ApiClient : execute()
+
+ApiClient ..> IScreenings : HTTP / JSON
+ApiClient ..> IReservations : HTTP / JSON
+ApiClient ..> IAdmin : HTTP / JSON
+
+IScreenings -- ScreeningMgmt
+IReservations -- ReservationMgmt
+IAdmin -- ReservationMgmt
+
+ReservationMgmt ..> IPaymentGateway
+IPaymentGateway -- PaymentIntegration
+
+ScreeningMgmt ..> IRepositories
+ReservationMgmt ..> IRepositories
+IRepositories -- Persistence
+
+Persistence ..> IJdbc
+IJdbc -- Db
+
+PaymentIntegration ..> IPaymentApi : HTTPS
+IPaymentApi -- ExternalGateway
+
+Cli ..> Shared : <<use>> DTOs
+Server ..> Shared : <<use>> DTOs
+
+
+note right of CommandMenu
+    Each user action (view screenings,
+    create, pay, cancel reservation)
+    is a Command executed from the menu.
+end note
+
+note right of ReservationMgmt
+    Creates, confirms (pays) and
+    cancels reservations. Holds seats
+    for 5 minutes and prevents
+    double booking.
+end note
+
+note right of PaymentIntegration
+    Adapter between the system
+    and the external payment gateway.
+end note
+
+note right of Shared
+    DTOs and enums shared
+    by the client and the server.
+end note
+
+@enduml

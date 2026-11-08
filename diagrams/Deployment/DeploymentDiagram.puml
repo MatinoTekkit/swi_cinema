@@ -1,0 +1,71 @@
+@startuml DeploymentDiagram
+
+title Cinema Reservation - Deployment Diagram
+
+skinparam shadowing false
+skinparam nodesep 60
+skinparam ranksep 70
+
+
+node "User Workstation" <<workstation>> as UserPc {
+    node "JRE 25" <<execution environment>> as UserJre {
+        artifact "cli.jar" as UserCli
+        artifact "shared.jar" as UserShared
+    }
+}
+
+node "Admin Workstation" <<workstation>> as AdminPc {
+    node "JRE 25" <<execution environment>> as AdminJre {
+        artifact "cli.jar" as AdminCli
+        artifact "shared.jar" as AdminShared
+    }
+}
+
+
+node "Internet / LAN" <<network>> as Network
+
+
+node "Cinema Server" <<application server>> as ServerNode {
+    node "JRE 25\nSpring Boot (embedded Tomcat, port 8080)" <<execution environment>> as ServerJre {
+        artifact "cinema.jar" as ServerJar {
+            component "Screening Management"
+            component "Reservation Management"
+            component "Payment Integration"
+            component "Persistence"
+        }
+        artifact "shared.jar" as ServerShared
+    }
+
+    database "cinema.db" <<SQLite file>> as Db
+}
+
+
+node "Payment Gateway" <<external system>> as PaymentGateway
+
+
+UserPc -- Network : HTTP(S) / REST, JSON
+AdminPc -- Network : HTTP(S) / REST, JSON
+Network -- ServerNode : HTTP(S) / REST, JSON
+
+ServerJar -- Db : JDBC (sqlite-jdbc)
+ServerNode -- PaymentGateway : HTTPS / REST
+
+
+note bottom of Db
+    Embedded SQLite database stored
+    as a file on the server; accessed
+    only by cinema.jar.
+end note
+
+note bottom of PaymentGateway
+    Third-party service,
+    not part of this system.
+end note
+
+note top of AdminPc
+    Admin uses the same CLI client;
+    admin functions are available
+    based on the user's role.
+end note
+
+@enduml
