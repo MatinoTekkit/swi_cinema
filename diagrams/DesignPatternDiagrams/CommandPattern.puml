@@ -1,0 +1,64 @@
+@startuml Reservation Command Pattern
+
+title Command Pattern - Reservation Operations
+
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+class UI <<Invoker>> {
+    + createReservation()
+    + payReservation()
+    + cancelReservation()
+}
+
+interface Command <<Command>> {
+    + execute(): void
+}
+
+class CreateReservationCommand <<ConcreteCommand>> {
+    - reservationService: ReservationService
+    - screeningId: Long
+    - seatIds: List<Long>
+    - email: String
+    + execute(): void
+}
+
+class PayReservationCommand <<ConcreteCommand>> {
+    - reservationService: ReservationService
+    - reservationId: Long
+    + execute(): void
+}
+
+class CancelReservationCommand <<ConcreteCommand>> {
+    - reservationService: ReservationService
+    - reservationId: Long
+    + execute(): void
+}
+
+class ReservationService <<Receiver>> {
+    + create(screeningId, seatIds, email): ReservationDto
+    + confirm(id: Long): ReservationDto
+    + cancel(id: Long): void
+}
+
+UI --> Command : executes
+
+Command <|.. CreateReservationCommand
+Command <|.. PayReservationCommand
+Command <|.. CancelReservationCommand
+
+CreateReservationCommand --> ReservationService
+PayReservationCommand --> ReservationService
+CancelReservationCommand --> ReservationService
+
+note bottom of Command
+    Encapsulates a user action
+    as an independent object.
+end note
+
+note right of ReservationService
+    Receiver containing the actual
+    reservation business logic.
+end note
+
+@enduml
