@@ -7,17 +7,15 @@ skinparam nodesep 60
 skinparam ranksep 70
 
 
-node "User Workstation" <<workstation>> as UserPc {
-    node "JRE 25" <<execution environment>> as UserJre {
-        artifact "cli.jar" as UserCli
-        artifact "shared.jar" as UserShared
+node "User Device" <<device>> as UserPc {
+    node "Web Browser" <<execution environment>> as UserBrowser {
+        artifact "Web Client\n(Vue SPA)" as UserWeb
     }
 }
 
-node "Admin Workstation" <<workstation>> as AdminPc {
-    node "JRE 25" <<execution environment>> as AdminJre {
-        artifact "cli.jar" as AdminCli
-        artifact "shared.jar" as AdminShared
+node "Admin Device" <<device>> as AdminPc {
+    node "Web Browser" <<execution environment>> as AdminBrowser {
+        artifact "Web Client\n(Vue SPA)" as AdminWeb
     }
 }
 
@@ -32,6 +30,7 @@ node "Cinema Server" <<application server>> as ServerNode {
             component "Reservation Management"
             component "Payment Integration"
             component "Persistence"
+            artifact "web client bundle\n(index.html, JS, CSS)" as WebBundle
         }
         artifact "shared.jar" as ServerShared
     }
@@ -43,13 +42,19 @@ node "Cinema Server" <<application server>> as ServerNode {
 node "Payment Gateway" <<external system>> as PaymentGateway
 
 
-UserPc -- Network : HTTP(S) / REST, JSON
-AdminPc -- Network : HTTP(S) / REST, JSON
-Network -- ServerNode : HTTP(S) / REST, JSON
+UserPc -- Network : HTTPS\n(static files, REST / JSON)
+AdminPc -- Network : HTTPS\n(static files, REST / JSON)
+Network -- ServerNode : HTTPS\n(static files, REST / JSON)
 
 ServerJar -- Db : JDBC (sqlite-jdbc)
 ServerNode -- PaymentGateway : HTTPS / REST
 
+
+note bottom of WebBundle
+    Built Vue application, served
+    by Spring Boot as static files
+    and downloaded by the browser.
+end note
 
 note bottom of Db
     Embedded SQLite database stored
@@ -63,8 +68,8 @@ note bottom of PaymentGateway
 end note
 
 note top of AdminPc
-    Admin uses the same CLI client;
-    admin functions are available
+    Admin uses the same web client;
+    admin pages are available
     based on the user's role.
 end note
 

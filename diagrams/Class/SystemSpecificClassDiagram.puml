@@ -10,72 +10,73 @@ skinparam nodesep 40
 skinparam ranksep 50
 
 
-package "cli : Client (Lanterna TUI)" as client {
+package "web : Client (Vue 3 SPA, TypeScript)" as client {
 
-    class CinemaCli <<Client>> {
-        + main(args: String[]): void
-        - buildMenu(): Menu
+    class App <<Vue component>> {
+        + router: Router
     }
 
-    class Menu <<Invoker>> {
-        - items: List<MenuItem>
-        + addItem(item: MenuItem): void
-        + clickItem(index: int): void
+    class Router <<vue-router>> {
+        + routes: RouteRecord[]
+        + beforeEach(guard: NavigationGuard): void
     }
 
-    class MenuItem {
-        - label: String
-        - command: Command
-        + click(): void
+    class ScreeningsView <<Vue component>> <<Observer>> {
+        + selectScreening(screeningId: number): void
     }
 
-    interface Command <<Command>> {
-        + execute(): void
+    class SeatSelectionView <<Vue component>> <<Observer>> {
+        - selectedSeatIds: number[]
+        + toggleSeat(seatId: number): void
+        + reserve(): void
     }
 
-    class ViewScreeningsCommand <<ConcreteCommand>> {
-        + execute(): void
+    class ReservationsView <<Vue component>> <<Observer>> {
+        + pay(reservationId: number): void
+        + cancel(reservationId: number): void
     }
 
-    class ViewReservationsCommand <<ConcreteCommand>> {
-        + execute(): void
+    class AdminReservationsView <<Vue component>> <<Observer>> {
+        + cancel(reservationId: number): void
     }
 
-    class CreateReservationCommand <<ConcreteCommand>> {
-        - screeningId: Long
-        - seatIds: List<Long>
-        + execute(): void
+    class ScreeningStore <<Pinia store>> <<Subject>> {
+        + screenings: ScreeningDto[]
+        + seats: SeatDto[]
+        + loadScreenings(): Promise<void>
+        + loadSeats(screeningId: number): Promise<void>
     }
 
-    class PayReservationCommand <<ConcreteCommand>> {
-        - reservationId: Long
-        + execute(): void
+    class ReservationStore <<Pinia store>> <<Subject>> {
+        + reservations: ReservationDto[]
+        + loadMine(): Promise<void>
+        + loadAll(): Promise<void>
+        + create(request: CreateReservationRequestDto): Promise<ReservationDto>
+        + pay(reservationId: number): Promise<void>
+        + cancel(reservationId: number): Promise<void>
     }
 
-    class CancelReservationCommand <<ConcreteCommand>> {
-        - reservationId: Long
-        + execute(): void
+    class CinemaApiClient <<Proxy>> {
+        - baseUrl: string
+        + listScreenings(): Promise<ScreeningDto[]>
+        + getSeats(screeningId: number): Promise<SeatDto[]>
+        + createReservation(request: CreateReservationRequestDto): Promise<ReservationDto>
+        + confirmReservation(id: number): Promise<ReservationDto>
+        + cancelReservation(id: number): Promise<void>
+        + listReservations(): Promise<ReservationDto[]>
+        + listAllReservations(): Promise<ReservationDto[]>
     }
 
-    class CinemaApiClient <<Receiver>> <<Proxy>> {
-        - baseUrl: String
-        + listScreenings(): List<ScreeningDto>
-        + getSeats(screeningId: Long): List<SeatDto>
-        + createReservation(request: CreateReservationRequestDto): ReservationDto
-        + confirmReservation(id: Long): ReservationDto
-        + cancelReservation(id: Long): void
-        + listReservations(): List<ReservationDto>
-    }
-
-    class HttpClientWrapper <<utility>> {
-        + {static} get(url: String, type: Class<T>): T
-        + {static} post(url: String, body: B, type: Class<T>): T
-        + {static} delete(url: String): boolean
+    class HttpClient <<fetch wrapper>> {
+        - authToken: string
+        + get<T>(url: string): Promise<T>
+        + post<T>(url: string, body: unknown): Promise<T>
+        + delete(url: string): Promise<void>
     }
 }
 
 
-package "shared : Data Transfer Objects" as shared {
+package "API Contract : Data Transfer Objects (JSON)" as shared {
 
     class CreateReservationRequestDto <<record>> {
         + screeningId: Long
@@ -299,24 +300,22 @@ package "cinema : Domain Model (JPA Entities)" as domain {
 }
 
 
-CinemaCli ..> Menu : <<create>>
-CinemaCli ..> Command : <<create>>
-Menu "1" o-- "*" MenuItem
-MenuItem --> "1" Command
+App --> Router
+Router ..> ScreeningsView : /screenings
+Router ..> SeatSelectionView : /screenings/:id/seats
+Router ..> ReservationsView : /reservations
+Router ..> AdminReservationsView : /admin/reservations
 
-Command <|.. ViewScreeningsCommand
-Command <|.. ViewReservationsCommand
-Command <|.. CreateReservationCommand
-Command <|.. PayReservationCommand
-Command <|.. CancelReservationCommand
+ScreeningsView --> ScreeningStore : observes
+SeatSelectionView --> ScreeningStore : observes
+SeatSelectionView --> ReservationStore
+ReservationsView --> ReservationStore : observes
+AdminReservationsView --> ReservationStore : observes
 
-ViewScreeningsCommand --> CinemaApiClient
-ViewReservationsCommand --> CinemaApiClient
-CreateReservationCommand --> CinemaApiClient
-PayReservationCommand --> CinemaApiClient
-CancelReservationCommand --> CinemaApiClient
+ScreeningStore --> CinemaApiClient
+ReservationStore --> CinemaApiClient
 
-CinemaApiClient ..> HttpClientWrapper
+CinemaApiClient --> HttpClient
 CinemaApiClient ..> CreateReservationRequestDto
 CinemaApiClient ..> ReservationDto
 CinemaApiClient ..> ScreeningDto
@@ -326,9 +325,9 @@ ScreeningDto --> MovieDto
 SeatDto --> SeatStatus
 
 
-HttpClientWrapper ..> ScreeningController
-HttpClientWrapper ..> ReservationController : REST API\nHTTP / JSON
-HttpClientWrapper ..> AdminReservationController
+HttpClient ..> ScreeningController
+HttpClient ..> ReservationController : REST API\nHTTP / JSON
+HttpClient ..> AdminReservationController
 
 
 ScreeningController --> ScreeningService
@@ -386,6 +385,26 @@ Reservation --> "1" ReservationState : current state
 ReservationState <|.. PendingState
 ReservationState <|.. ReservedState
 PendingState ..> ReservedState : confirm()
+
+
+note right of CinemaApiClient
+    Remote proxy for the server REST API.
+    HttpClient adds the authentication
+    token to every request; the user is
+    never identified by a request value.
+end note
+
+note top of shared
+    Server: Java records (shared module).
+    Web client: equivalent TypeScript
+    interfaces with the same JSON shape.
+end note
+
+note right of Router
+    Admin routes are shown only to
+    users with the ADMIN role;
+    the server enforces it anyway.
+end note
 
 
 @enduml
