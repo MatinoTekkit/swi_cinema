@@ -42,10 +42,10 @@ activate ScreeningRepository
 ScreeningRepository -> DB: SELECT screening
 DB --> ScreeningRepository: Screening
 
-ScreeningRepository --> ScreeningService: Screening (hallId)
+ScreeningRepository --> ScreeningService: Screening (roomId)
 deactivate ScreeningRepository
 
-ScreeningService -> SeatRepository: findByHallId(hallId)
+ScreeningService -> SeatRepository: findByRoomId(roomId)
 activate SeatRepository
 
 SeatRepository -> DB: SELECT seats
