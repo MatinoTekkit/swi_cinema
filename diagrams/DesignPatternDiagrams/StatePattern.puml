@@ -1,0 +1,61 @@
+@startuml Reservation State Pattern
+
+title State Pattern - Reservation
+
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+class Reservation <<Context>> {
+    - id: Long
+    - createdAt: LocalDateTime
+    - state: ReservationState
+    + confirm(): void
+    + cancel(): void
+    + setState(state: ReservationState): void
+}
+
+interface ReservationState <<State>> {
+    + confirm(reservation: Reservation): void
+    + cancel(reservation: Reservation): void
+}
+
+class PendingReservationState <<ConcreteState>> {
+    + confirm(reservation: Reservation): void
+    + cancel(reservation: Reservation): void
+}
+
+class ReservedReservationState <<ConcreteState>> {
+    + confirm(reservation: Reservation): void
+    + cancel(reservation: Reservation): void
+}
+
+Reservation --> ReservationState : current state
+
+ReservationState <|.. PendingReservationState
+ReservationState <|.. ReservedReservationState
+
+PendingReservationState ..> ReservedReservationState : transition on confirm()
+
+note right of PendingReservationState
+    Reservation is waiting
+    for payment.
+
+    confirm():
+    transition to RESERVED
+
+    cancel():
+    remove reservation
+end note
+
+note right of ReservedReservationState
+    Reservation has already
+    been confirmed.
+
+    confirm():
+    no state change
+
+    cancel():
+    cancel reservation
+end note
+
+@enduml
